@@ -47,11 +47,13 @@ final class UserWeekController extends AbstractUserReportController
         $values = new WeekByUser();
         $values->setUser($currentUser);
         $values->setDate($dateTimeFactory->getStartOfWeek());
+        $values->setEndDate(clone $values->getDate());
 
         $form = $this->createForm(WeekByUserForm::class, $values, [
             'include_user' => $canChangeUser,
             'timezone' => $dateTimeFactory->getTimezone()->getName(),
             'start_date' => $values->getDate(),
+            'end_date' => $values->getEndDate(),
         ]);
 
         $form->submit($request->query->all(), false);
@@ -68,8 +70,12 @@ final class UserWeekController extends AbstractUserReportController
             $values->setDate($dateTimeFactory->getStartOfWeek());
         }
 
+        if ($values->getEndDate() === null) {
+            $values->setEndDate(clone $values->getDate());
+        }
+
         $start = $dateTimeFactory->getStartOfWeek($values->getDate());
-        $end = $dateTimeFactory->getEndOfWeek($values->getDate());
+        $end = $dateTimeFactory->getEndOfWeek($values->getEndDate());
         $selectedUser = $values->getUser();
 
         $previous = clone $start;

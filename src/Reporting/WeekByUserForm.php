@@ -38,6 +38,11 @@ class WeekByUserForm extends AbstractType
             'view_timezone' => $options['timezone'],
             'start_date' => $options['start_date'],
         ]);
+        $builder->add('end_date', WeekPickerType::class, [
+            'model_timezone' => $options['timezone'],
+            'view_timezone' => $options['timezone'],
+            'start_date' => $options['start_date'],
+        ]);
 
         if ($options['include_user']) {
             $builder->add('user', UserType::class, ['width' => false]);
@@ -50,10 +55,12 @@ class WeekByUserForm extends AbstractType
      */
     public function configureOptions(OptionsResolver $resolver)
     {
+        $start = new \DateTime();
         $resolver->setDefaults([
             'data_class' => WeekByUser::class,
             'timezone' => date_default_timezone_get(),
-            'start_date' => new \DateTime(),
+            'start_date' => $start,
+            'end_date' => (clone $start),
             'include_user' => false,
             'csrf_protection' => false,
             'method' => 'GET',

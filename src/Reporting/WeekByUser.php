@@ -11,4 +11,20 @@ namespace App\Reporting;
 
 final class WeekByUser extends DateByUser
 {
+    /**
+     * @var \DateTime
+     */
+    private $endDate;
+
+    public function getEndDate(): ?\DateTime
+    {
+        return $this->endDate;
+    }
+
+    public function setEndDate(\DateTime $date): self
+    {
+        $this->endDate = $date;
+
+        return $this;
+    }
 }

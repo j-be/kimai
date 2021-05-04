@@ -19,6 +19,10 @@
                 {{ widgets.username(user) }}
             {% endif %}
             {{ form_widget(form.date) }}
+            {% if form.end_date is defined %}
+                <span>-</span>
+                {{ form_widget(form.end_date) }}
+            {% endif %}
             <div class="btn-group"{% if form.sumType.vars.choices|length <= 1 %} style="display: none"{% endif %}>
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="{{ 'display'|icon }}"></i> <span class="caret"></span>
@@ -60,6 +64,11 @@
             jQuery('#user-filter-form').on('change', function(ev) {
                 jQuery(this).submit();
             });
+            {% if form.end_date is defined %}
+                $('#{{ form.end_date.vars.id }}').on('change', function(ev) {
+                    $(this).closest('form').submit();
+                });
+            {% endif %}
         });
     </script>
 {% endblock %}
