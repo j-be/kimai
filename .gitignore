@@ -70,3 +70,9 @@ npm-debug.log
 yarn-error.log
 ###< symfony/webpack-encore-bundle ###
 /nbproject/*
+
+### j-be
+/node-env/
+/composer.phar
+*.swp
+*.patch
