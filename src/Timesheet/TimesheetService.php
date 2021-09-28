@@ -25,8 +25,10 @@ use App\Event\TimesheetUpdateMultiplePostEvent;
 use App\Event\TimesheetUpdateMultiplePreEvent;
 use App\Event\TimesheetUpdatePostEvent;
 use App\Event\TimesheetUpdatePreEvent;
+use App\Repository\ActivityRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\TimesheetRepository;
+use App\Repository\Query\ActivityQuery;
 use App\Repository\Query\ProjectQuery;
 use App\Security\AccessDeniedException;
 use App\Timesheet\DateTimeFactory;
@@ -69,11 +71,16 @@ final class TimesheetService
      * @var ProjectRepository
      */
     private $projectRepository;
+    /**
+     * @var ActivityRepository
+     */
+    private $activityRepository;
 
     public function __construct(
         SystemConfiguration $configuration,
         TimesheetRepository $repository,
         ProjectRepository $projectRepository,
+        ActivityRepository $activityRepository,
         TrackingModeService $service,
         EventDispatcherInterface $dispatcher,
         AuthorizationCheckerInterface $security,
@@ -82,6 +89,7 @@ final class TimesheetService
         $this->configuration = $configuration;
         $this->repository = $repository;
         $this->projectRepository = $projectRepository;
+        $this->activityRepository = $activityRepository;
         $this->trackingModeService = $service;
         $this->dispatcher = $dispatcher;
         $this->auth = $security;
@@ -109,7 +117,19 @@ final class TimesheetService
         $projects = $this->projectRepository->getProjectsForQuery($query);
 
         if (count($projects) == 1) {
-            $timesheet->setProject($projects[0]);
+            $project = $projects[0];
+            $timesheet->setProject($project);
+
+            $query = new ActivityQuery();
+            $query->setCurrentUser($user);
+            $query->addProject($project);
+            $query->setOrderBy("id");
+            $query->setVisibility(true);
+
+            $activities = $this->activityRepository->getActivitiesForQuery($query);
+            if (!empty($activities)) {
+                $timesheet->setActivity($activities[0]);
+            }
         }
 
         if (null !== $request) {
