@@ -25,8 +25,11 @@ use App\Event\TimesheetUpdateMultiplePostEvent;
 use App\Event\TimesheetUpdateMultiplePreEvent;
 use App\Event\TimesheetUpdatePostEvent;
 use App\Event\TimesheetUpdatePreEvent;
+use App\Repository\ProjectRepository;
 use App\Repository\TimesheetRepository;
+use App\Repository\Query\ProjectQuery;
 use App\Security\AccessDeniedException;
+use App\Timesheet\DateTimeFactory;
 use App\Timesheet\TrackingMode\TrackingModeInterface;
 use App\Validator\ValidationException;
 use App\Validator\ValidationFailedException;
@@ -62,10 +65,15 @@ final class TimesheetService
      * @var ValidatorInterface
      */
     private $validator;
+    /**
+     * @var ProjectRepository
+     */
+    private $projectRepository;
 
     public function __construct(
         SystemConfiguration $configuration,
         TimesheetRepository $repository,
+        ProjectRepository $projectRepository,
         TrackingModeService $service,
         EventDispatcherInterface $dispatcher,
         AuthorizationCheckerInterface $security,
@@ -73,6 +81,7 @@ final class TimesheetService
     ) {
         $this->configuration = $configuration;
         $this->repository = $repository;
+        $this->projectRepository = $projectRepository;
         $this->trackingModeService = $service;
         $this->dispatcher = $dispatcher;
         $this->auth = $security;
@@ -90,6 +99,18 @@ final class TimesheetService
     {
         $timesheet = new Timesheet();
         $timesheet->setUser($user);
+
+        $query = new ProjectQuery();
+        $query->setCurrentUser($user);
+        $query->setVisibility(true);
+        $now = DateTimeFactory::createByUser($user)->createDateTime();
+        $query->setProjectStart($now);
+        $query->setProjectEnd($now);
+        $projects = $this->projectRepository->getProjectsForQuery($query);
+
+        if (count($projects) == 1) {
+            $timesheet->setProject($projects[0]);
+        }
 
         if (null !== $request) {
             $this->prepareNewTimesheet($timesheet, $request);
